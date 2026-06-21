@@ -58,9 +58,8 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
       if (storedActions) {
         setActions(JSON.parse(storedActions));
       }
-    } catch (err) {
-      // Corrupted localStorage data — clear it and start fresh
-      console.error("Failed to parse stored data, resetting:", err);
+    } catch {
+      // Failed to parse stored data, reset silently
       localStorage.removeItem("carbon_profile");
       localStorage.removeItem("carbon_actions");
     }

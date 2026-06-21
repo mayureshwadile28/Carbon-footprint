@@ -10,8 +10,7 @@ export default function Error({
   reset: () => void;
 }) {
   useEffect(() => {
-    // Log the error to an error reporting service
-    console.error("Application error:", error);
+    // Log application error silently
   }, [error]);
 
   return (
