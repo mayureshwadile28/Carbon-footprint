@@ -55,9 +55,12 @@ jest.mock("../ActionLogger", () => {
 
 // Mock next/dynamic — immediately resolve the dynamic import
 jest.mock('next/dynamic', () => {
-  return (importFn: () => Promise<unknown>) => {
-    return function DynamicWrapper(props: Record<string, unknown>) {
-      return <div>Dynamic Component</div>;
+  return (loader: () => Promise<unknown>) => {
+    // Return a placeholder that renders immediately
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const LazyComp = React.lazy(loader as any);
+    return function DynamicWrapper(p: Record<string, unknown>) {
+      return React.createElement(React.Suspense, { fallback: null }, React.createElement(LazyComp, p));
     };
   };
 });

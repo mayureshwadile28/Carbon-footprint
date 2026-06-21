@@ -1,7 +1,10 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
+import { TextEncoder, TextDecoder } from 'util';
 import SmartAssistant from '../SmartAssistant';
+
+Object.assign(global, { TextEncoder, TextDecoder });
 
 const mockLogAction = jest.fn();
 const mockProfile = { transport: 'Car (Gasoline)', diet: 'Average', energy: 'Grid (Mixed)', householdSize: 2 };
@@ -73,7 +76,7 @@ describe('SmartAssistant', () => {
 
   it('disables send button while typing', async () => {
     // Create an unresolved promise to simulate pending request
-    let resolvePromise: unknown;
+    let resolvePromise!: (value: unknown) => void;
     const pendingPromise = new Promise(resolve => { resolvePromise = resolve; });
     (global.fetch as jest.Mock).mockReturnValueOnce(pendingPromise);
 
@@ -112,7 +115,7 @@ describe('SmartAssistant', () => {
     expect(retryButton).toBeInTheDocument();
 
     // Setup success for retry
-    let resolvePromise: unknown;
+    let resolvePromise!: (value: unknown) => void;
     const pendingPromise = new Promise(resolve => { resolvePromise = resolve; });
     (global.fetch as jest.Mock).mockReturnValueOnce(pendingPromise);
 
@@ -125,7 +128,7 @@ describe('SmartAssistant', () => {
   it('handles streaming response and tool calls', async () => {
     // Mock a readable stream reader
     let step = 0;
-    const encoder = new (require('util').TextEncoder)();
+    const encoder = new TextEncoder();
     
     const mockReader = {
       read: jest.fn().mockImplementation(() => {
@@ -170,5 +173,50 @@ describe('SmartAssistant', () => {
 
     // Toast should be displayed
     expect(screen.getByText(/✓ Logged: Bike Commute/)).toBeInTheDocument();
+  });
+
+  it('loads chat history from localStorage', () => {
+    localStorage.setItem("carbon_chat_history", JSON.stringify([
+      { id: "1", sender: "user", text: "Hello" },
+      { id: "2", sender: "bot", text: "Hi there!" }
+    ]));
+    
+    render(<SmartAssistant />);
+    expect(screen.getByText("Hello")).toBeInTheDocument();
+    expect(screen.getByText("Hi there!")).toBeInTheDocument();
+    
+    // Cleanup
+    localStorage.clear();
+  });
+
+  it('handles invalid JSON in tool call stream gracefully', async () => {
+    // Mock a readable stream reader with bad JSON
+    let step = 0;
+    const encoder = new TextEncoder();
+    const mockReader = {
+      read: jest.fn().mockImplementation(() => {
+        if (step === 0) {
+          step++;
+          return Promise.resolve({ done: false, value: encoder.encode('{"type":"tool_call","actionId":"bad_json--END_TOOL_CALL--') });
+        } else {
+          return Promise.resolve({ done: true, value: undefined });
+        }
+      })
+    };
+
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      body: { getReader: () => mockReader }
+    });
+
+    render(<SmartAssistant />);
+    const input = screen.getByPlaceholderText('Ask me for tips...');
+    fireEvent.change(input, { target: { value: 'Test bad JSON' } });
+    fireEvent.keyDown(input, { key: 'Enter', code: 'Enter' });
+
+    await waitFor(() => {
+      // The invalid JSON should just be appended as text or ignored, but it shouldn't crash
+      expect(screen.queryByText('Thinking...')).not.toBeInTheDocument();
+    });
   });
 });

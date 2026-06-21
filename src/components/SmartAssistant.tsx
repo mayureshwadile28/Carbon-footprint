@@ -16,7 +16,6 @@ const CHAT_STORAGE_KEY = "carbon_chat_history";
 
 export default function SmartAssistant() {
   const { profile, actions, logAction } = useProfile();
-  const messageCounterRef = useRef(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const lastUserMsgRef = useRef<string>("");
   const [toasts, setToasts] = useState<string[]>([]);

@@ -136,6 +136,10 @@ describe('Chat API Route', () => {
       stream: (async function* () {
         yield { text: () => '', functionCalls: () => [{ name: 'logAction', args: { actionId: 'bike_commute' } }] };
       })(),
+    }).mockResolvedValueOnce({
+      stream: (async function* () {
+        yield { text: () => 'Action logged!', functionCalls: () => null };
+      })(),
     });
 
     const req = createRequest({ message: 'I biked' }, '192.168.1.10');
@@ -161,6 +165,13 @@ describe('Chat API Route', () => {
     const req = createRequest({ message: 'Hello' }, '192.168.1.11');
     const res = await POST(req);
     // Should catch the error and return 500
+    expect(res.status).toBe(500);
+  });
+
+  it('Handles non-Error object from Gemini API', async () => {
+    mockSendMessageStream.mockRejectedValueOnce('String Error');
+    const req = createRequest({ message: 'Hello' }, '192.168.1.12');
+    const res = await POST(req);
     expect(res.status).toBe(500);
   });
 });

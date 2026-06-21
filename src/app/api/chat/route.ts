@@ -223,7 +223,7 @@ INSTRUCTIONS:
             let text = "";
             try {
               text = chunk.text();
-            } catch (e) {
+            } catch {
               // Ignore if there is no text part in this chunk
             }
             
@@ -264,7 +264,7 @@ INSTRUCTIONS:
               let followUpText = "";
               try {
                 followUpText = chunk.text();
-              } catch (e) {
+              } catch {
                 // Ignore
               }
               if (followUpText) {
