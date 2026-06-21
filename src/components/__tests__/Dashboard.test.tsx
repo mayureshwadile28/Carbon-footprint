@@ -57,13 +57,10 @@ jest.mock("../ActionLogger", () => {
 jest.mock('next/dynamic', () => {
   return (loader: () => Promise<unknown>) => {
     // Return a placeholder that renders immediately
-    const LazyComp = React.lazy(loader as () => Promise<{ default: React.ComponentType<Record<string, unknown>> }>);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const LazyComp = React.lazy(loader as any);
     return function DynamicWrapper(p: Record<string, unknown>) {
-      return (
-        <React.Suspense fallback={<div>Loading...</div>}>
-          <LazyComp {...p} />
-        </React.Suspense>
-      );
+      return React.createElement(React.Suspense, { fallback: null }, React.createElement(LazyComp, p));
     };
   };
 });

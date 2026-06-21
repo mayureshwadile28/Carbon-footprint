@@ -1,10 +1,6 @@
 {
   "name": "carbon-app",
   "version": "0.1.0",
-  "description": "A carbon footprint tracker app",
-  "author": "Hack2Skill PromptWars Participant",
-  "license": "MIT",
-  "keywords": ["carbon", "footprint", "nextjs", "react"],
   "private": true,
   "scripts": {
     "dev": "next dev",

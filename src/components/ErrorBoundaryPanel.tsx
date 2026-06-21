@@ -25,8 +25,8 @@ export default class ErrorBoundaryPanel extends Component<Props, State> {
     return { hasError: true };
   }
 
-  componentDidCatch(_error: Error, _info: React.ErrorInfo) {
-    // Log error silently
+  componentDidCatch(error: Error, info: React.ErrorInfo) {
+    console.error("Panel error:", error, info.componentStack);
   }
 
   render() {

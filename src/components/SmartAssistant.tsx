@@ -137,8 +137,8 @@ export default function SmartAssistant() {
                    if (textBefore) botText += textBefore + "\n\n";
                    if (textAfter) botText += textAfter + "\n\n";
                  }
-               } catch {
-                 // Ignore failed JSON parse
+               } catch (e) {
+                 console.error("Failed to parse tool call", e);
                }
             } else if (part) {
                botText += part;

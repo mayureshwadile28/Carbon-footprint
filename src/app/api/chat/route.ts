@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 
 // --- Startup env validation ---
 if (!process.env.GEMINI_API_KEY) {
-  // Missing API key handled silently
+  console.warn('[Carbon API] WARNING: GEMINI_API_KEY is not set. AI chat will fail at runtime.');
 }
 
 // --- Singleton Gemini client ---
@@ -288,7 +288,12 @@ INSTRUCTIONS:
       },
     });
 
-  } catch {
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      console.error("Gemini API Error:", error.message);
+    } else {
+      console.error("Unknown Gemini API Error");
+    }
     return NextResponse.json({ error: "Failed to communicate with AI helper" }, { status: 500 });
   }
 }
