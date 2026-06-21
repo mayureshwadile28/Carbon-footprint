@@ -217,8 +217,17 @@ INSTRUCTIONS:
       async start(controller) {
         try {
           for await (const chunk of result.stream) {
-            const text = chunk.text();
+            let text = "";
+            try {
+              text = chunk.text();
+            } catch (e) {
+              // Ignore if there is no text part in this chunk
+            }
             
+            if (text) {
+              controller.enqueue(new TextEncoder().encode(text));
+            }
+
             // Check if the chunk contains a function call
             if (chunk.functionCalls() && chunk.functionCalls()!.length > 0) {
               const call = chunk.functionCalls()![0];
@@ -231,8 +240,6 @@ INSTRUCTIONS:
                 });
                 controller.enqueue(new TextEncoder().encode(toolCallData + "\n\n--END_TOOL_CALL--\n\n"));
               }
-            } else if (text) {
-              controller.enqueue(new TextEncoder().encode(text));
             }
           }
           controller.close();
