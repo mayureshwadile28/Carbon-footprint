@@ -90,6 +90,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
     setActions([]);
     localStorage.removeItem("carbon_profile");
     localStorage.removeItem("carbon_actions");
+    localStorage.removeItem("carbon_chat_history");
   };
 
   return (
