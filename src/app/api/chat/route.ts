@@ -217,6 +217,7 @@ INSTRUCTIONS:
       async start(controller) {
         try {
           let calledActionId: string | null = null;
+          let hasOutputText = false;
 
           for await (const chunk of result.stream) {
             let text = "";
@@ -226,7 +227,8 @@ INSTRUCTIONS:
               // Ignore if there is no text part in this chunk
             }
             
-            if (text) {
+            if (text.trim()) {
+              hasOutputText = true;
               controller.enqueue(new TextEncoder().encode(text));
             }
 
@@ -246,8 +248,8 @@ INSTRUCTIONS:
             }
           }
 
-          // If the AI called a tool, feed the result back to force a conversational response
-          if (calledActionId) {
+          // If the AI called a tool but output NO text, feed the result back to force a conversational response
+          if (calledActionId && !hasOutputText) {
             const followUp = await chat.sendMessageStream([{
               functionResponse: {
                 name: "logAction",
