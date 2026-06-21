@@ -131,6 +131,12 @@ export default function SmartAssistant() {
                        showToast(`✓ Logged: ${action.name} (-${action.co2Saved}kg CO₂)`);
                      }
                    }
+                   
+                   // Extract any text that came with the tool call
+                   const textBefore = part.substring(0, jsonStart).trim();
+                   const textAfter = part.substring(jsonEnd + 1).trim();
+                   if (textBefore) botText += textBefore + "\n\n";
+                   if (textAfter) botText += textAfter + "\n\n";
                  }
                } catch (e) {
                  console.error("Failed to parse tool call", e);
