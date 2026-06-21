@@ -216,6 +216,8 @@ INSTRUCTIONS:
     const stream = new ReadableStream({
       async start(controller) {
         try {
+          let calledActionId: string | null = null;
+
           for await (const chunk of result.stream) {
             let text = "";
             try {
@@ -234,6 +236,7 @@ INSTRUCTIONS:
               if (call.name === "logAction") {
                 // Send a special structured JSON chunk for the frontend to interpret as a tool call
                 const args = call.args as { actionId: string };
+                calledActionId = args.actionId;
                 const toolCallData = JSON.stringify({ 
                   type: "tool_call", 
                   actionId: args.actionId 
@@ -242,6 +245,32 @@ INSTRUCTIONS:
               }
             }
           }
+
+          // If the AI called a tool, feed the result back to force a conversational response
+          if (calledActionId) {
+            const followUp = await chat.sendMessageStream([{
+              functionResponse: {
+                name: "logAction",
+                response: { 
+                  success: true, 
+                  message: "The action was logged successfully! Now, write a friendly and highly encouraging response to the user to confirm it was logged." 
+                }
+              }
+            }]);
+
+            for await (const chunk of followUp.stream) {
+              let followUpText = "";
+              try {
+                followUpText = chunk.text();
+              } catch (e) {
+                // Ignore
+              }
+              if (followUpText) {
+                controller.enqueue(new TextEncoder().encode(followUpText));
+              }
+            }
+          }
+
           controller.close();
         } catch (err) {
           controller.error(err);
